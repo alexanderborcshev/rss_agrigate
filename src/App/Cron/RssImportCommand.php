@@ -11,7 +11,7 @@ class RssImportCommand
     {
         try {
             $cfg = Bootstrap::config();
-            $feedUrl = $cfg['feeds']['ria_archive'];
+            $feedUrl = (string) $cfg['feeds']['ria_archive'];
             $svc = new ImportService($feedUrl);
             $res = $svc->run();
             fwrite(STDOUT, sprintf(

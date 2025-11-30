@@ -3,6 +3,7 @@ namespace App\Setup;
 
 use PDO;
 use PDOException;
+use RuntimeException;
 
 class DatabaseInitializer
 {
@@ -31,7 +32,7 @@ class DatabaseInitializer
             $stmt = $pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = :db');
             $stmt->execute([':db' => $this->cfg['dbname']]);
             return (bool)$stmt->fetchColumn();
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
     }
@@ -57,13 +58,22 @@ class DatabaseInitializer
     public function applySchema($schemaPath): void
     {
         if (!is_file($schemaPath)) {
-            throw new \RuntimeException('Schema file not found: ' . $schemaPath);
+            throw new RuntimeException('Schema file not found: ' . $schemaPath);
         }
+
         $sql = file_get_contents($schemaPath);
+
         if ($sql === false) {
-            throw new \RuntimeException('Failed to read schema file');
+            throw new RuntimeException('Failed to read schema file');
         }
-        $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', $this->cfg['host'], $this->cfg['port'], $this->cfg['dbname'], isset($this->cfg['charset']) ? $this->cfg['charset'] : 'utf8mb4');
+
+        $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s',
+            $this->cfg['host'],
+            $this->cfg['port'],
+            $this->cfg['dbname'],
+            $this->cfg['charset'] ?? 'utf8mb4'
+        );
+
         $pdo = new PDO($dsn, $this->cfg['user'], $this->cfg['pass'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -71,7 +81,9 @@ class DatabaseInitializer
 
         $statements = array_filter(array_map('trim', preg_split('/;\s*\n|;\r?\n|;$/m', $sql)));
         foreach ($statements as $stmt) {
-            if ($stmt === '' || str_starts_with(ltrim($stmt), '--')) continue;
+            if ($stmt === '' || str_starts_with(ltrim($stmt), '--')) {
+                continue;
+            }
             $pdo->exec($stmt);
         }
     }

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http;
+namespace App\Http\Controllers;
+
+use App\Http\Requests\RequestInterface;
 
 interface ControllerInterface
 {

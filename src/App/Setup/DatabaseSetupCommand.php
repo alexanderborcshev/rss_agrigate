@@ -13,9 +13,6 @@ class DatabaseSetupCommand
 
         $allowCreate = false;
         $schemaPath = realpath(dirname(__DIR__, 3) . '/db/schema.sql');
-        if ($schemaPath === false) {
-            $schemaPath = dirname(__DIR__, 3) . '/db/schema.sql';
-        }
 
         foreach ($args as $a) {
             if ($a === '--help' || $a === '-h') {
@@ -49,7 +46,7 @@ class DatabaseSetupCommand
                 fwrite(STDOUT, "готово\n");
             }
 
-            fwrite(STDOUT, "Применение схемы: {$schemaPath}\n");
+            fwrite(STDOUT, "Применение схемы: $schemaPath\n");
             $init->applySchema($schemaPath);
             fwrite(STDOUT, "Схема применена успешно.\n");
             return 0;

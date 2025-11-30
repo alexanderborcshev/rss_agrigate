@@ -36,7 +36,7 @@ class Cache
             $val = 1;
             $this->mc->set($key, $val);
         }
-        $this->mc->increment($key, 1);
+        $this->mc->increment($key);
     }
 
     private function withNs($key): string
@@ -52,5 +52,10 @@ class Cache
     public function set($key, $value, $ttl = 300): bool
     {
         return $this->mc->set($this->withNs($key), $value, (int)$ttl);
+    }
+
+    public function abort($key): bool
+    {
+        return $this->mc->delete($this->withNs($key));
     }
 }

@@ -2,13 +2,14 @@
 namespace App\Rss;
 
 use App\Util;
+use RuntimeException;
 use SimpleXMLElement;
 
 class RssFetcher
 {
-    private $url;
+    private string $url;
 
-    public function __construct($url)
+    public function __construct(string $url)
     {
         $this->url = $url;
     }
@@ -23,11 +24,11 @@ class RssFetcher
         ]);
         $xmlStr = @file_get_contents($this->url, false, $ctx);
         if ($xmlStr === false) {
-            throw new \RuntimeException('Failed to fetch RSS: ' . $this->url);
+            throw new RuntimeException('Failed to fetch RSS: ' . $this->url);
         }
         $xml = @simplexml_load_string($xmlStr);
         if (!$xml) {
-            throw new \RuntimeException('Invalid RSS XML');
+            throw new RuntimeException('Invalid RSS XML');
         }
         return $this->parse($xml);
     }
@@ -46,20 +47,17 @@ class RssFetcher
             $description = (string)$item->description;
             $pubDate = Util::parseRssDate((string)$item->pubDate);
 
-            // content:encoded
             $content = null;
             $contentNode = $item->children($nsContent);
             if ($contentNode && isset($contentNode->encoded)) {
                 $content = (string)$contentNode->encoded;
             }
 
-            // categories
             $categories = [];
             foreach ($item->category as $cat) {
                 $categories[] = trim((string)$cat);
             }
 
-            // image via enclosure or media
             $imageUrl = null;
             if (isset($item->enclosure)) {
                 $attrs = $item->enclosure->attributes();
@@ -67,7 +65,7 @@ class RssFetcher
                     $imageUrl = (string)$attrs['url'];
                 }
             }
-            // some feeds provide media:content
+
             $media = $item->children('https://search.yahoo.com/mrss/');
             if ($imageUrl === null && $media && isset($media->content)) {
                 $attrs = $media->content->attributes();

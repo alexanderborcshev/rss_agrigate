@@ -4,18 +4,12 @@ namespace App\Repository;
 use App\Bootstrap;
 use PDO;
 
-class NewsRepository
+class NewsRepository extends BaseRepository
 {
-    private ?PDO $db;
-
-    public function __construct()
-    {
-        $this->db = Bootstrap::db();
-    }
-
+    protected ?string $tableName = 'news';
     public function upsertByGuid($item): ?int
     {
-        $sql = 'INSERT INTO news (guid, title, link, description, content, image_url, pub_date) 
+        $sql = 'INSERT INTO ' . $this->tableName . ' (guid, title, link, description, content, image_url, pub_date) 
                 VALUES (:guid, :title, :link, :description, :content, :image_url, :pub_date)
                 ON DUPLICATE KEY UPDATE 
                     title = VALUES(title),
@@ -41,15 +35,8 @@ class NewsRepository
 
     public function getByGuid($guid)
     {
-        $stmt = $this->db->prepare('SELECT * FROM news WHERE guid = :guid');
+        $stmt = $this->db->prepare('SELECT * FROM ' . $this->tableName . ' WHERE guid = :guid');
         $stmt->execute([':guid' => $guid]);
-        return $stmt->fetch();
-    }
-
-    public function getById($id)
-    {
-        $stmt = $this->db->prepare('SELECT * FROM news WHERE id = :id');
-        $stmt->execute([':id' => $id]);
         return $stmt->fetch();
     }
 
@@ -87,14 +74,12 @@ class NewsRepository
 
         $offset = max(0, ((int)$page - 1) * (int)$perPage);
 
-        // total count
-        $sqlCount = 'SELECT COUNT(*) as cnt FROM news n ' . $joins . ' ' . $whereSql;
+        $sqlCount = 'SELECT COUNT(*) as cnt FROM ' . $this->tableName . ' n ' . $joins . ' ' . $whereSql;
         $stmt = $this->db->prepare($sqlCount);
         $stmt->execute($params);
         $total = (int)$stmt->fetch()['cnt'];
 
-        // page items
-        $sql = 'SELECT n.* FROM news n ' . $joins . ' ' . $whereSql . ' ORDER BY n.pub_date DESC, n.id DESC LIMIT :limit OFFSET :offset';
+        $sql = 'SELECT n.* FROM ' . $this->tableName . ' n ' . $joins . ' ' . $whereSql . ' ORDER BY n.pub_date DESC, n.id DESC LIMIT :limit OFFSET :offset';
         $stmt = $this->db->prepare($sql);
         foreach ($params as $k => $v) {
             $stmt->bindValue($k, $v);

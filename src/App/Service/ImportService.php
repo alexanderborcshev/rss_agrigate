@@ -13,7 +13,7 @@ class ImportService
     private NewsRepository $newsRepository;
     private Cache $cache;
 
-    public function __construct($feedUrl)
+    public function __construct(string $feedUrl)
     {
         $this->fetcher = new RssFetcher($feedUrl);
         $this->categoryRepository = new CategoryRepository();

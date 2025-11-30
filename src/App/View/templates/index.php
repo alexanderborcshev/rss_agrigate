@@ -1,6 +1,11 @@
 <?php
 use App\Util;
 
+/** @var array $categories */
+/** @var string $catSlug */
+/** @var string $dateFrom */
+/** @var string $dateTo */
+/** @var callable $urlWith */
 ?>
 <!doctype html>
 <html lang="ru">
@@ -96,7 +101,7 @@ use App\Util;
         <?php if ($result['pages'] > 1): ?>
             <div class="pagination">
                 <?php for ($p = 1; $p <= $result['pages']; $p++): ?>
-                    <?php if ($p == $result['page']): ?>
+                    <?php if ($p === $result['page']): ?>
                         <span class="active"><?= $p ?></span>
                     <?php else: ?>
                         <a href="<?= Util::h($urlWith(['page' => $p])) ?>"><?= $p ?></a>
